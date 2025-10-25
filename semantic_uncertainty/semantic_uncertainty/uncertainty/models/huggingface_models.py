@@ -232,16 +232,16 @@ class HuggingfaceModel(BaseModel):
             unwanted_tokens_embedded = self.tokenizer(unwanted_tokens_at_the_end)["input_ids"]
             unwanted_tokens_embedded = [x for y in unwanted_tokens_embedded for x in y]
             unwanted_tokens_embedded = list(set(unwanted_tokens_embedded))
-            print(f"{unwanted_tokens_embedded=}")
+            # print(f"{unwanted_tokens_embedded=}")
             inputs = self.tokenizer.apply_chat_template(
                 messages,
                 add_generation_prompt=True,
                 return_tensors="pt"
             ).to("cuda")
-            print(f"{inputs=}")
+            # print(f"{inputs=}")
             while inputs[0][-1] in unwanted_tokens_embedded:
                 inputs = inputs[:, :-1]
-            print(f"after {self.tokenizer.decode(inputs[0])=}")
+            # print(f"after {self.tokenizer.decode(inputs[0])=}")
 
             terminators = [
                 self.tokenizer.eos_token_id,
@@ -266,7 +266,7 @@ class HuggingfaceModel(BaseModel):
         else:
             stopping_criteria = None
 
-        print(f"{temperature=} {self.max_new_tokens=} ")
+        # print(f"{temperature=} {self.max_new_tokens=} ")
         # Decode input_data for logging.
         input_data = self.tokenizer.decode(inputs[0], skip_special_tokens=True)
         # print(f"input_data: {input_data}")
@@ -293,7 +293,7 @@ class HuggingfaceModel(BaseModel):
 
         if return_full:
             return full_answer
-        print(f"{full_answer=} {input_data=}")
+        # print(f"{full_answer=} {input_data=}")
 
         # For some models, we need to remove the input_data from the answer.
         if full_answer.startswith(input_data):
@@ -402,7 +402,7 @@ class HuggingfaceModel(BaseModel):
 
         log_likelihoods = [score.item() for score in transition_scores[0]]
         if len(log_likelihoods) == 1:
-            logging.warning('Taking first and only generation for log likelihood!')
+            # logging.warning('Taking first and only generation for log likelihood!')
             log_likelihoods = log_likelihoods
         else:
             log_likelihoods = log_likelihoods[:n_generated]

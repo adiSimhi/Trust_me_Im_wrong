@@ -44,7 +44,6 @@ class KnowledgeDataset():
         dataset = datasets.load_dataset("trivia_qa", 'rc', ignore_verifications=True)
         train, validation, test = dataset["train"], dataset["validation"], dataset["test"]
         dataset = train
-        print(f"the length of the dataset is {len(dataset)}")
         random.seed(42)
 
         data = []
@@ -66,8 +65,6 @@ class KnowledgeDataset():
             if len(
                     old_token) > 5 or prompt in [e[0] for e in data]:
                 continue
-            if i < 10:
-                print([prompt, old_target, old_token])
             data.append([prompt, old_target, old_token])
 
         # randomly select 100k examples
@@ -119,10 +116,7 @@ class KnowledgeDataset():
                     self.tok(old_target)["input_ids"]
                 if len(
                         old_token) > 5 or prompt in [e[0] for e in data]:
-                    # print("too long")
                     continue
-                if number_of_examples < 10:
-                    print([prompt, old_target, old_token])
                 data.append([prompt, old_target, old_token])
 
             # randomly select 100k examples
@@ -159,9 +153,7 @@ class KnowledgeDataset():
         for point in initial_dataset:
             index += 1
             if index % 1000 == 0:
-                print(f"finished {index} examples")
-                print(f"knowledge dataset has {len(knowledge_dataset)} examples")
-                print(f"non knowledge dataset has {len(non_knowledge_dataset)} examples")
+
                 self.save_data(knowledge_dataset,
                                path_to_save + f"{self.model_name.replace('/', '_')}_{self.dataset_name}_knowledge_dataset.json")
                 self.save_data(non_knowledge_dataset,
@@ -190,7 +182,6 @@ class KnowledgeDataset():
                 non_knowledge_dataset.append([prompt, old_target, old_token, count_know])
             else:
                 else_dataset.append([prompt, old_target, old_token, count_know])
-            print(f"{count_know=} {greedy_generation=} {temp_generation=} {old_target=}")
         print(f"knowledge dataset has {len(knowledge_dataset)} examples")
         print(f"non knowledge dataset has {len(non_knowledge_dataset)} examples")
         self.save_data(knowledge_dataset,
@@ -225,7 +216,6 @@ class KnowledgeDataset():
             unwanted_tokens_embedded = self.tok(unwanted_tokens_at_the_end)["input_ids"]
             unwanted_tokens_embedded = [x for y in unwanted_tokens_embedded for x in y]
             unwanted_tokens_embedded = list(set(unwanted_tokens_embedded))
-            print(f"{messages=}")
             input_ids = self.tok.apply_chat_template(
                 messages,
                 add_generation_prompt=True,
@@ -253,7 +243,6 @@ class KnowledgeDataset():
                 model_out = model.generate(input_ids, max_length=(len(input_ids[0]) + 10), do_sample=True,
                                            pad_token_id=self.tok.eos_token_id, num_beams=2, temperature=temperature)
             generated = self.tok.batch_decode(model_out, skip_special_tokens=True)
-        print(f"generated with temp={generated}")
         return generated
 
     def greedy_generation(self, model, prompt, length=10):

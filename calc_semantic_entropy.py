@@ -52,7 +52,6 @@ class SemanticEntropy:
         )
 
         self.metric = None
-        print(f"{entailment_model=}")
 
         self.entailment_model = self.load_entailment_model(entailment_model, None, None)
 
@@ -63,7 +62,6 @@ class SemanticEntropy:
         Load the entailment model for the semantic entropy calculation using embeddings.
         """
         # Load entailment model.
-        print("Beginning loading for entailment model.")
         if entailment_model == "deberta":
             entailment_model = EntailmentDeberta()
         elif entailment_model == "gpt-4":
@@ -84,7 +82,6 @@ class SemanticEntropy:
             )
         else:
             raise ValueError
-        print("Entailment model loading complete.")
 
         return entailment_model
 
@@ -111,12 +108,10 @@ class SemanticEntropy:
         # We sample one low temperature answer on which we will compute the
         # accuracy and args.num_generation high temperature answers which will
         # be used to estimate the entropy variants.
-        print(f"{num_generations=} {temperature=}")
         for i in range(num_generations):
             # Temperature for first generation is always `0.1`.
 
             temperature = 0.1 if i == 0 else temp
-            print(f"{temperature=} {i=}")
             predicted_answer, token_log_likelihoods, embedding = model.predict(
                 question, temperature
             )
@@ -178,20 +173,16 @@ class SemanticEntropy:
         validation_embeddings = []
         p_trues = []
         count = 0
-        print(f"len(model_generations)={len(model_generations)} {model_generations=}")
         # Loop over datapoints and compute validation embeddings and entropies.
         for idx, tid in enumerate(model_generations):
 
             example = model_generations[tid]
-            print(f"{example=} {example.keys()=}")
             question = example["question"]
             full_responses = example["responses"]
             most_likely_answer = example["most_likely_answer"]
-            print(f"{most_likely_answer=} {full_responses=} {question=}")
             responses = [r[0] for r in full_responses]
             if most_likely_answer["response"] is None or most_likely_answer["token_log_likelihoods"] is None or most_likely_answer["embedding"] is None or\
             (None, None, None, 0.0) in full_responses:
-                print("No responses for this example.", idx, tid)
                 continue
             validation_embeddings.append(most_likely_answer["embedding"])
 
@@ -212,7 +203,6 @@ class SemanticEntropy:
                 )
 
                 result_dict["semantic_ids"].append(semantic_ids)
-                print(f"{len(log_liks)=} {len(log_liks[0])=} {len(semantic_ids)=}")
 
                 # Compute entropy from frequencies of cluster assignments.
                 entropies["cluster_assignment_entropy"].append(
@@ -222,7 +212,6 @@ class SemanticEntropy:
                 # Length normalization of generation probabilities.
                 log_liks_agg = [np.mean(log_lik) for log_lik in log_liks]
 
-                print(f"{log_liks_agg=} {np.mean(log_liks_agg)=}")
 
                 # Compute naive entropy.
                 entropies["regular_entropy"].append(predictive_entropy(log_liks_agg))
@@ -261,24 +250,19 @@ class SemanticEntropy:
 
                 count += 1
         if count == 0:
-            print("No valid examples!!!")
             return None, None
-        print(f'{entropies["semantic_entropy"]=}')
         # Compute average entropies.
         avg_entropies = {k: np.mean(v) for k, v in entropies.items()}
-        print("Average entropies: %s", avg_entropies)
 
         # Compute average embeddings.
         validation_embeddings = torch.stack(validation_embeddings)
         avg_embedding = torch.mean(validation_embeddings, dim=0)
-        print("Average embedding: %s", avg_embedding)
 
         return avg_entropies, avg_embedding
 
 
 
     def calc_semantic_entropy_per_example(self,prompt:str,answer:str,temp:float=1.0):
-        print(f"{prompt=} {answer=} {temp=}")
         results = self.generate_answers(
                     self.semantic_entropy_generation_model,
                     [prompt,answer],

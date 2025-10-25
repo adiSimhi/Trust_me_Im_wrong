@@ -1,4 +1,4 @@
-name: Certainty_lying
+name: TrustMeImWrong
 channels:
   - pytorch
   - huggingface
